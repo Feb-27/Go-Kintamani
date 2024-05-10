@@ -19,19 +19,23 @@ class Petani {
     this.foto,
     this.status,
     this.namaKelompok,
+    required String fotoPath,
   });
 
   factory Petani.fromJson(Map<String, dynamic> json) {
     return Petani(
-      idPenjual: json['id_Penjual'],
-      idKelompokTani: json['id_KelompokTani'],
+      idPenjual: json['id_penjual'],
+      idKelompokTani: json['id_kelompok_tani'],
       nama: json['nama'],
       nik: json['nik'],
       alamat: json['alamat'],
       telp: json['telp'],
       foto: json['foto'],
       status: json['status'],
-      namaKelompok: json['nama_Kelompok'],
+      namaKelompok: json['nama_kelompok'],
+      fotoPath: '',
     );
   }
+
+  get fotoPath => null;
 }

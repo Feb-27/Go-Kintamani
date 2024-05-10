@@ -10,11 +10,13 @@ import 'package:flutter_application_1/page/petaniPage.dart';
 import 'package:flutter_application_1/services/apiStatic.dart';
 
 void main() {
-  runApp(const MyHome());
+  runApp(const MyHome(
+    title: '',
+  ));
 }
 
 class MyHome extends StatelessWidget {
-  const MyHome({Key? key}) : super(key: key);
+  const MyHome({Key? key, required String title}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
   late Future<List<Petani>> futurePetani; // Perbaikan tipe data Future
 
-  final ApiService apiStatic = ApiService();
+  final ApiStatic apiStatic = ApiStatic();
 
   @override
   void initState() {
