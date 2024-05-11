@@ -41,15 +41,15 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
-  late Future<List<Petani>> futurePetani; // Perbaikan tipe data Future
+  // late Future<List<Petani>> futurePetani; // Perbaikan tipe data Future
 
-  final ApiStatic apiStatic = ApiStatic();
+  // final ApiStatic apiStatic = ApiStatic();
 
   @override
   void initState() {
     super.initState();
-    futurePetani =
-        apiStatic.fetchPetani(); // Perbaikan inisialisasi futurePetani
+    // futurePetani =
+    //     apiStatic.fetchPetani(); // Perbaikan inisialisasi futurePetani
   }
 
   final List<Widget> _screen = [
@@ -81,8 +81,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _navigatetoPetaniPage(BuildContext context) {
-    Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => DatasScreen(futurePetani: futurePetani)));
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => DatasScreen()));
   }
 
   @override

@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter_application_1/models/errMsg.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_application_1/models/errMSG.dart';
 import 'package:flutter_application_1/models/kelompok.dart';
-// import 'package:flutter_application_1/models/new_petani_model.dart';
 import 'package:flutter_application_1/models/petani.dart';
 
 class ApiStatic {
@@ -69,106 +68,6 @@ class ApiStatic {
   }
 
   // Update an existing petani
-  Future<Petani> updatePetani(Petani petani) async {
-    final response = await http.put(
-      Uri.parse('https://dev.wefgis.com/api/petani/${petani.idPenjual}'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'id_kelompok_tani': petani.idKelompokTani,
-        'nama': petani.nama,
-        'nik': petani.nik,
-        'alamat': petani.alamat,
-        'telp': petani.telp,
-        'foto': petani.foto,
-        'status': petani.status,
-        'nama_kelompok': petani.namaKelompok,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      return Petani.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to update petani');
-    }
-  }
-
-  // Delete a petani
-  Future<void> deletePetani(String idPenjual) async {
-    final response = await http.delete(
-      Uri.parse('https://dev.wefgis.com/api/petani/$idPenjual'),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to delete petani');
-    }
-  }
-
-  // get kelompok petani
-  static Future<List<Kelompok>> getKelompokTani() async {
-    try {
-      final response =
-          await http.get(Uri.parse("$host/api/kelompoktani"), headers: {
-        'Authorization': 'Bearer ' + _token,
-      });
-      if (response.statusCode == 200) {
-        var json = jsonDecode(response.body);
-        final parsed = json.cast<Map<String, dynamic>>();
-        return parsed.map<Kelompok>((json) => Kelompok.fromJson(json)).toList();
-      } else {
-        return [];
-      }
-    } catch (e) {
-      return [];
-    }
-  }
-
-  static Future<ErrorMSG> savePetani(petani, filepath) async {
-    try {
-      print(petani);
-      var url = Uri.parse('https://dev.wefgis.com/api/petani');
-
-      var request = http.MultipartRequest('POST', url);
-      request.fields['nama'] = petani.nama;
-      request.fields['nik'] = petani.nik;
-      request.fields['alamat'] = petani.alamat;
-      request.fields['telp'] = petani.telp;
-      request.fields['status'] = petani.status;
-      request.fields['id_kelompok_tani'] = petani.idKelompokTani;
-      if (filepath != '') {
-        request.files.add(await http.MultipartFile.fromPath('foto', filepath));
-      }
-      request.headers.addAll({
-        'Authorization': 'Bearer ' + _token,
-      });
-      var response = await request.send();
-
-      if (response.statusCode == 200) {
-        // return Petani.fromJson(jsonDecode(response.body));
-        final respStr = await response.stream.bytesToString();
-        print(jsonDecode(respStr));
-        // print(respStr);
-
-        // return Petani.fromJson(jsonDecode(response.body));
-        return ErrorMSG.fromJson(jsonDecode(respStr));
-        // return ErrorMSG.fromJson(jsonDecode(respStr));
-      } else {
-        //return ErrorMSG.fromJson(jsonDecode(response.body));
-        // return ErrorMSG(success: false, message: 'err Request');
-
-        throw Exception('Failed to update petani');
-      }
-    } catch (e) {
-      // ErrorMSG responseRequest =
-      //     ErrorMSG(success: false, message: 'error caught: $e');
-      // return responseRequest;
-      print(e);
-      throw Exception('Error $e');
-    }
-  }
-
-  // Update an existing petani
   static Future<ErrorMSG> editPetani(idPenjual, petani, filepath) async {
     try {
       print(petani);
@@ -215,20 +114,51 @@ class ApiStatic {
     }
   }
 
-  static Future<ErrorMSG> Petanibangsat(idPenjual, petani, filepath) async {
+  // Delete a petani
+  Future<void> deletePetani(String idPenjual) async {
+    final response = await http.delete(
+      Uri.parse('https://dev.wefgis.com/api/petani/$idPenjual'),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete petani');
+    }
+  }
+
+  // get kelompok petani
+  static Future<List<Kelompok>> getKelompokTani() async {
+    try {
+      final response =
+          await http.get(Uri.parse("$host/api/kelompoktani"), headers: {
+        'Authorization': 'Bearer ' + _token,
+      });
+      if (response.statusCode == 200) {
+        var json = jsonDecode(response.body);
+        final parsed = json.cast<Map<String, dynamic>>();
+        return parsed.map<Kelompok>((json) => Kelompok.fromJson(json)).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static Future<ErrorMSG> savePetani(petani, filepath) async {
     try {
       print(petani);
-      print(idPenjual);
-
-      var url = Uri.parse('https://dev.wefgis.com/api/petani/$idPenjual');
+      var url = Uri.parse('https://dev.wefgis.com/api/petani');
+      // if (id != 0) {
+      //   url = Uri.parse('$host/api/petani/' + id.toString());
+      // }
 
       var request = http.MultipartRequest('POST', url);
-      request.fields['nama'] = petani.nama!;
-      request.fields['nik'] = petani.nik!;
-      request.fields['alamat'] = petani.alamat!;
-      request.fields['telp'] = petani.telp!;
-      request.fields['status'] = petani.status!;
-      request.fields['id_kelompok_tani'] = petani.idKelompokTani!;
+      request.fields['nama'] = petani.nama;
+      request.fields['nik'] = petani.nik;
+      request.fields['alamat'] = petani.alamat;
+      request.fields['telp'] = petani.telp;
+      request.fields['status'] = petani.status;
+      request.fields['id_kelompok_tani'] = petani.idKelompokTani;
       if (filepath != '') {
         request.files.add(await http.MultipartFile.fromPath('foto', filepath));
       }

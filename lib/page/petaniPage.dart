@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/main.dart';
+
 import 'package:flutter_application_1/models/petani.dart';
+
 import 'package:flutter_application_1/page/detailPetani.dart';
+import 'package:flutter_application_1/page/inputPage.dart';
 import 'package:flutter_application_1/page/TambahEdit_Petani_Page.dart';
-import 'package:flutter_application_1/services/apistatic.dart';
+
+import 'package:flutter_application_1/services/apiStatic.dart';
 
 class DatasScreen extends StatefulWidget {
   const DatasScreen({
     super.key,
-    required Future<List<Petani>> futurePetani,
   });
 
   @override
@@ -16,94 +19,90 @@ class DatasScreen extends StatefulWidget {
 }
 
 class _DatasScreenState extends State<DatasScreen> {
-  late final ApiStatic _apistatic;
+  late final ApiStatic _apiService;
+
   late Future<List<Petani>> futurePetani;
 
   @override
   void initState() {
     super.initState();
-    _apistatic = ApiStatic();
-    futurePetani = _apistatic.fetchPetani();
+
+    _apiService = ApiStatic();
+    futurePetani = _apiService.fetchPetani();
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Petani'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MyApp(),
-              ),
-            );
-          },
-        ),
+        title: const Text('Petani List'),
       ),
       body: Center(
         child: FutureBuilder<List<Petani>>(
           future: futurePetani,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
+              // Display a loading indicator while waiting for the future
               return const CircularProgressIndicator();
             } else if (snapshot.hasError) {
+              // Display an error message if there's an error
               return Text('Error: ${snapshot.error}');
             } else if (snapshot.hasData) {
+              // Display the list of Petani if data is available
               final List<Petani> petaniList = snapshot.data!;
               return RefreshIndicator(
                 onRefresh: () async {
-                  setState(() {
-                    futurePetani = _apistatic.fetchPetani();
-                  });
+                  setState(() {});
                 },
                 child: ListView.builder(
                   itemCount: petaniList.length,
-                  itemBuilder: (context, index) {
-                    final petani = petaniList[index];
-                    return Column(
-                      children: [
-                        InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => DetailPetaniPage(
-                                  petani: petani,
+                  itemBuilder: (BuildContext context, int index) => Column(
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                                  DetailPetaniPage(
+                                petani: petaniList[index],
+                              ),
+                            ),
+                          );
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundImage:
+                                      NetworkImage("${petaniList[index].foto}"),
+                                  radius: 20,
                                 ),
-                              ),
-                            );
-                          },
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage: NetworkImage(petani.foto ?? ''),
-                              radius: 20,
+                                const SizedBox(width: 16),
+                                Text(
+                                  '${petaniList[index].nama}',
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ],
                             ),
-                            title: Text(
-                              petani.nama ?? 'Tidak tersedia',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Text(
-                              'NIK: ${petani.nik ?? 'Tidak tersedia'}',
-                            ),
-                            trailing: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              mainAxisSize: MainAxisSize.min,
+                            Row(
                               children: [
                                 IconButton(
                                   icon: const Icon(Icons.edit),
                                   onPressed: () {
+                                    // Add code for edit action here
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) =>
-                                            TambahEditPetaniScreen(
-                                          petani: petani,
+                                        // builder: (context) => InputFormPetani(
+                                        //   petani: petaniList[index],
+                                        // ),
+                                        builder: (context) => EditFormPetani(
+                                          petani: petaniList[index],
                                         ),
                                       ),
                                     );
@@ -112,68 +111,74 @@ class _DatasScreenState extends State<DatasScreen> {
                                 IconButton(
                                   icon: const Icon(Icons.delete),
                                   onPressed: () async {
-                                    final confirmed = await showDialog<bool>(
+                                    final confirmed = await showDialog(
                                       context: context,
                                       builder: (context) {
                                         return AlertDialog(
-                                          title: const Text('Konfirmasi Hapus'),
+                                          title: const Text('Confirm Delete'),
                                           content: const Text(
-                                              'Apakah Anda yakin ingin menghapus petani ini?'),
+                                              'Are you sure you want to delete this petani?'),
                                           actions: [
                                             TextButton(
-                                              child: const Text('Batal'),
+                                              child: const Text('Cancel'),
                                               onPressed: () {
                                                 Navigator.of(context)
                                                     .pop(false);
                                               },
                                             ),
                                             TextButton(
-                                              child: const Text('Hapus'),
+                                              child: const Text('Delete'),
                                               onPressed: () async {
                                                 try {
                                                   final idPenjual =
-                                                      petani.idPenjual;
+                                                      petaniList[index]
+                                                          .idPenjual;
                                                   if (idPenjual != null) {
-                                                    await ApiStatic
+                                                    await _apiService
                                                         .deletePetani(
                                                             idPenjual);
-                                                    setState(() {
-                                                      futurePetani = _apistatic
-                                                          .fetchPetani();
-                                                    });
+                                                    setState(() {});
                                                   }
                                                 } catch (e) {
                                                   ScaffoldMessenger.of(context)
                                                       .showSnackBar(
                                                     SnackBar(
                                                       content: Text(
-                                                          'Gagal menghapus petani: $e'),
+                                                          'Failed to delete petani: $e'),
                                                     ),
                                                   );
                                                 }
-                                                Navigator.of(context).pop(true);
+                                                Navigator.pushReplacement(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        MyApp(),
+                                                    // builder: (context) => DatasScreen(futurePetani: futurePetani),
+                                                  ),
+                                                );
                                               },
                                             ),
                                           ],
                                         );
                                       },
                                     );
-                                    if (confirmed == true) {
-                                      // Lakukan tindakan penghapusan
+                                    if (confirmed) {
+                                      // Add code for delete action here
                                     }
                                   },
                                 ),
                               ],
                             ),
-                          ),
+                          ],
                         ),
-                      ],
-                    );
-                  },
+                      )
+                    ],
+                  ),
                 ),
               );
             } else {
-              return const Text('Data tidak tersedia');
+              // Default case: Display a message when there's no data
+              return const Text('No data available');
             }
           },
         ),
@@ -183,7 +188,10 @@ class _DatasScreenState extends State<DatasScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const TambahEditPetaniScreen(),
+              // builder: (context) => const TambahEditPetaniPage(),
+              builder: (context) => const EditFormPetani(
+                  // petani: Petani(),
+                  ),
             ),
           );
         },
